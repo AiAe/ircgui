@@ -1,0 +1,2 @@
+# ircgui
+Ripple IRC GUI
