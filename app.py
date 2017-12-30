@@ -135,8 +135,6 @@ def gui_login(button):
 
     if username and token:
 
-        print("User:", username, "Token:", token)
-
         data = {"username": username, "token": token}
 
         with open('user.json', 'w') as outfile:
