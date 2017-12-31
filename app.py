@@ -35,6 +35,7 @@ Create GUI with title, resolution and background color
 app = gui("Ripple IRC Client", "800x400")
 app.setBg("#454545")
 app.setLocation("LEFT")
+app.setIcon("favicon.ico")
 
 '''
 Sends private message and adds it to list
