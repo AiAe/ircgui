@@ -1,2 +1,2 @@
 # ircgui
-Ripple IRC GUI
+Basic IRC GUI for public and private chat.
