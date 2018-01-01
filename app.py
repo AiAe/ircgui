@@ -37,6 +37,17 @@ app.setBg("#454545")
 app.setLocation("LEFT")
 app.setIcon("favicon.ico")
 
+
+def create_tab(target, msg=None):
+    app.startTab(target)
+    app.setBg("#454545")
+    app.addListBox(target, [msg], 0, 0, 3)
+    app.addLabelEntry(target, 2, 0)
+    app.addNamedButton("Send", target, send_message, 2, 1)
+    app.addNamedButton("Close", "close" + target, close_message, 2, 2)
+    app.stopTab()
+
+
 '''
 Sends private message and adds it to list
 '''
@@ -45,7 +56,7 @@ Sends private message and adds it to list
 def send_private_message(button):
     msg = str(app.getEntry(button))
     if bool(msg.strip()):
-        msg2 = "[{}] {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
+        msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
         irc.connection.privmsg(button, msg)
     else:
@@ -68,30 +79,23 @@ Sends message to public channel
 
 
 def send_message(button):
-    channel = button
-    btn = "Message_" + channel
-    msg = app.getEntry(btn)
+    msg = app.getEntry(button)
     if bool(msg.strip()):
-        msg2 = "[{}] {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
-        app.addListItem(channel, msg2)
-        irc.connection.privmsg(channel, msg)
+        msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
+        app.addListItem(button, msg2)
+        irc.connection.privmsg(button, msg)
     else:
         msg2 = "Empty messages are not allowed!"
-        app.addListItem(channel, msg2)
+        app.addListItem(button, msg2)
 
 
 '''
-Create GUI for private chat
+Sends command to close channel/chat
 '''
 
 
-def create_private(nick, msg):
-    app.startSubWindow(nick, title=nick, modal=False)
-    app.addListBox(nick, ["Private with " + nick], 0, 1, 10, 0)
-    app.addLabelEntry(nick, 2, 0)
-    app.addListItem(nick, msg)
-    app.addNamedButton("Send", nick, send_private_message, 2, 1)
-    app.stopSubWindow()
+# def close_message(button):
+#     command = app.getEntry("close" + button)
 
 
 '''
@@ -113,13 +117,9 @@ class RippleBot(irc.bot.SingleServerIRCBot):
         app.setTabbedFrameTabExpand("IRC", expand=True)
         app.setFont(12)
         app.setStretch("both")
+
         for channel in channels:
-            app.startTab(channel)
-            app.setBg("#454545")
-            app.addListBox(channel, ["Welcome to " + channel], 0, 0, 3)
-            app.addLabelEntry("Message_" + channel, 2, 0)
-            app.addNamedButton("Send", channel, send_message, 2, 1)
-            app.stopTab()
+            create_tab(channel, "Joined " + channel)
             c.join(channel)
         app.stopTabbedFrame()
 
@@ -143,11 +143,11 @@ class RippleBot(irc.bot.SingleServerIRCBot):
         cmd = e.arguments[0]
         msg = "{} {}: {}".format(strftime("%H:%M", gmtime()), nick, cmd)
         try:
-            create_private(nick, msg)
+            app.openTabbedFrame("IRC")
+            create_tab(nick, msg)
+            app.stopTabbedFrame()
         except:
             send_private(nick, msg)
-
-        app.showSubWindow(nick)
 
 
 irc = RippleBot()
@@ -174,6 +174,7 @@ def gui_login(button):
 
     else:
         print("Input is empty")
+
 
 '''
 Create GUI for login
