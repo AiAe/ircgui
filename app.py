@@ -6,6 +6,7 @@ import irc.strings
 from appJar import gui
 import json
 from time import gmtime, strftime
+import sys
 
 '''
 Loads username and token from user.json
@@ -15,7 +16,6 @@ try:
         user = json.load(u)
 except FileNotFoundError:
     print('user.json is missing!')
-    raise
     sys.exit()
 
 '''
@@ -26,7 +26,6 @@ try:
         channels = json.load(u)
 except FileNotFoundError:
     print('channels.json is missing!')
-    raise
     sys.exit()
 
 '''
@@ -44,7 +43,7 @@ def create_tab(target, msg=None):
     app.addListBox(target, [msg], 0, 0, 3)
     app.addLabelEntry(target, 2, 0)
     app.addNamedButton("Send", target, send_message, 2, 1)
-    app.addNamedButton("Close", "close" + target, close_message, 2, 2)
+    # app.addNamedButton("Close", "close" + target, close_message, 2, 2)
     app.stopTab()
 
 
@@ -59,9 +58,6 @@ def send_private_message(button):
         msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
         irc.connection.privmsg(button, msg)
-    else:
-        msg2 = "Empty messages are not allowed!"
-        app.addListItem(button, msg2)
 
 
 '''
@@ -84,15 +80,11 @@ def send_message(button):
         msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
         irc.connection.privmsg(button, msg)
-    else:
-        msg2 = "Empty messages are not allowed!"
-        app.addListItem(button, msg2)
 
 
 '''
 Sends command to close channel/chat
 '''
-
 
 # def close_message(button):
 #     command = app.getEntry("close" + button)
@@ -153,45 +145,40 @@ class RippleBot(irc.bot.SingleServerIRCBot):
 irc = RippleBot()
 
 '''
-Login GUI
-'''
-
-
-def gui_login(button):
-    username = app.getEntry("Name")
-    token = app.getEntry("Token")
-
-    if username and token:
-
-        print("User:", username, "Token:", token)
-
-        data = {"username": username, "token": token}
-
-        with open('user.json', 'w') as outfile:
-            json.dump(data, outfile)
-
-        app.destroySubWindow("GUILogin")
-
-    else:
-        print("Input is empty")
-
-
-'''
-Create GUI for login
-'''
-app.startSubWindow("GUILogin", title="Login", modal=True)
-app.addLabelEntry("Name")
-app.addLabelSecretEntry("Token")
-app.setFocus("Name")
-app.addButtons(["Login"], gui_login)
-app.stopSubWindow()
-
-'''
 Check if username and token are not empty
 '''
-if not user["username"] or not user["token"]:
+
+if not user["username"] and not user["token"]:
+
+    '''
+    Login GUI
+    '''
+
+
+    def gui_login(button):
+        username = app.getEntry("Name")
+        token = app.getEntry("Token")
+
+        if username and token:
+            data = {"username": username, "token": token}
+
+            with open('user.json', 'w') as outfile:
+                json.dump(data, outfile)
+
+            sys.exit()
+
+
+    '''
+    Create GUI for login
+    '''
+    app.startSubWindow("GUILogin", title="Login", modal=True)
+    app.addLabelEntry("Name")
+    app.addLabelSecretEntry("Token")
+    app.setFocus("Name")
+    app.addButtons(["Login"], gui_login)
+    app.stopSubWindow()
+
     app.showSubWindow("GUILogin")
-    app.thread(irc.start)
 else:
     app.thread(irc.start)
 
