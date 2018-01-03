@@ -29,12 +29,23 @@ except FileNotFoundError:
     sys.exit()
 
 '''
+Load highlight words from highlights.json
+'''
+try:
+    with open("highlights.json") as u:
+        hl = json.load(u)
+except FileNotFoundError:
+    print('highlights.json is missing!')
+    sys.exit()
+
+'''
 Create GUI with title, resolution and background color
 '''
 app = gui("Ripple IRC Client", "800x400")
 app.setBg("#454545")
 app.setLocation("LEFT")
 app.setIcon("favicon.ico")
+
 
 '''
 Create tabs for channels and private messages
@@ -80,7 +91,12 @@ Get message from irc and put it in list
 
 
 def pull_private(nick, msg):
+    fix_msg = msg.lower()
+    list = fix_msg.split(" ")
     app.addListItem(nick, msg)
+    pos = len(app.getAllListItems(nick)) - 1
+    if bool(set(hl).intersection(list)):
+        app.setListItemAtPosBg(nick, pos, "#e1ff00")
 
 
 '''
@@ -90,6 +106,7 @@ Sends message to public channel
 
 def send_message(button):
     msg = app.getEntry(button)
+
     if bool(msg.strip()):
         msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
@@ -128,6 +145,7 @@ class RippleBot(irc.bot.SingleServerIRCBot):
         for channel in channels:
             create_tab(channel, "Joined " + channel)
             c.join(channel)
+
         app.stopTabbedFrame()
 
     '''
@@ -137,9 +155,17 @@ class RippleBot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         cmd = e.arguments[0]
         nick = e.source.nick
+        channel = e.target
+
         msg = "{} {}: {}".format(strftime("%H:%M", gmtime()), nick, cmd)
 
-        app.addListItem(e.target, msg)
+        fix_msg = msg.lower()
+        list = fix_msg.split(" ")
+        app.addListItem(channel, msg)
+        pos = len(app.getAllListItems(channel)) - 1
+
+        if bool(set(hl).intersection(list)):
+            app.setListItemAtPosBg(channel, pos, "#e1ff00")
 
     '''
     Private messages
