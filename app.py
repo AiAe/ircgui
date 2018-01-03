@@ -36,6 +36,10 @@ app.setBg("#454545")
 app.setLocation("LEFT")
 app.setIcon("favicon.ico")
 
+'''
+Create tabs for channels and private messages
+'''
+
 
 def create_tab(target, msg=None):
     app.startTab(target)
@@ -48,6 +52,15 @@ def create_tab(target, msg=None):
 
 
 '''
+Clear user inputs
+'''
+
+
+def clear_entity(target):
+    app.clearEntry(target)
+
+
+'''
 Sends private message and adds it to list
 '''
 
@@ -57,6 +70,7 @@ def send_private_message(button):
     if bool(msg.strip()):
         msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
+        clear_entity(button)
         irc.connection.privmsg(button, msg)
 
 
@@ -65,7 +79,7 @@ Get message from irc and put it in list
 '''
 
 
-def send_private(nick, msg):
+def pull_private(nick, msg):
     app.addListItem(nick, msg)
 
 
@@ -79,6 +93,7 @@ def send_message(button):
     if bool(msg.strip()):
         msg2 = "{} {}: {}".format(strftime("%H:%M", gmtime()), user["username"], msg)
         app.addListItem(button, msg2)
+        clear_entity(button)
         irc.connection.privmsg(button, msg)
 
 
@@ -87,7 +102,7 @@ Sends command to close channel/chat
 '''
 
 # def close_message(button):
-#     command = app.getEntry("close" + button)
+#     deletetab("IRC", button.split("close")[1])
 
 
 '''
@@ -139,7 +154,7 @@ class RippleBot(irc.bot.SingleServerIRCBot):
             create_tab(nick, msg)
             app.stopTabbedFrame()
         except:
-            send_private(nick, msg)
+            pull_private(nick, msg)
 
 
 irc = RippleBot()
